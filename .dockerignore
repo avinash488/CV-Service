@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+*.pt
+*.onnx
+.env
+.git/
+.idea/
+*.log
+test_detect.py

@@ -7,12 +7,15 @@ load_dotenv()
 P1_URL = os.getenv("P1_PREDICT_URL", "http://localhost:8000/predict")
 
 async def forward_to_p1(scene_data: dict) -> dict:
-    payload = {
-        "total_objects": scene_data["total_objects"],
-        "class_counts": scene_data["class_counts"],
-        "crowded": scene_data["crowded"],
-        "occlusion_detected": scene_data["occlusion_detected"]
-    }
+    # Serialize scene summary as a text string for P1
+    scene_text = (
+        f"Objects detected: {scene_data['total_objects']}. "
+        f"Classes: {', '.join(f'{k}: {v}' for k, v in scene_data['class_counts'].items())}. "
+        f"Crowded: {scene_data['crowded']}. "
+        f"Occlusion: {scene_data['occlusion_detected']}."
+    )
+
+    payload = {"text": scene_text}
 
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
