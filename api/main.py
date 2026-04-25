@@ -18,8 +18,11 @@ async def detect(file: UploadFile = File(...)):
     np_arr = np.frombuffer(contents, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    scene = analyzer.analyze(frame)
+    if frame is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Invalid image file")
 
+    scene = analyzer.analyze(frame)
     detections = [
         Detection(
             class_name=d["class"],
@@ -29,11 +32,7 @@ async def detect(file: UploadFile = File(...)):
         )
         for d in scene["detections"]
     ]
-
-    return DetectionResponse(
-        total_objects=scene["total_objects"],
-        detections=detections
-    )
+    return DetectionResponse(total_objects=scene["total_objects"], detections=detections)
 
 @app.post("/analyze", response_model=SceneResponse)
 async def analyze(file: UploadFile = File(...)):
@@ -41,8 +40,11 @@ async def analyze(file: UploadFile = File(...)):
     np_arr = np.frombuffer(contents, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
+    if frame is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
     scene = analyzer.analyze(frame)
     p1_result = await forward_to_p1(scene)
-
     scene["p1_bridge"] = p1_result
     return scene
